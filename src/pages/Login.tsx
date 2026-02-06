@@ -212,9 +212,12 @@ const Login = () => {
             {/* Admin access note */}
             {isLogin && (
               <div className="mt-6 pt-6 border-t border-border text-center">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-2">
-                  Acesso Administrativo
-                </p>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Star className="w-3.5 h-3.5 text-muted-foreground" />
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                    Acesso Administrativo
+                  </p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Ambiente de demonstração local. Qualquer credencial válida permite o acesso.
                 </p>
