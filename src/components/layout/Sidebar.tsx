@@ -7,9 +7,10 @@ import {
   BarChart3,
   AlertTriangle,
   Search,
-  Settings,
+  LogOut,
   Store,
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -21,6 +22,7 @@ const navigation = [
 ];
 
 export function Sidebar() {
+  const { signOut } = useAuth();
   return (
     <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border">
       <div className="flex h-full flex-col">
@@ -60,16 +62,13 @@ export function Sidebar() {
 
         {/* Footer */}
         <div className="border-t border-sidebar-border p-4">
-          <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent/50 px-3 py-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary/20">
-              <Settings className="h-4 w-4 text-sidebar-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-sidebar-foreground truncate">
-                Configurações
-              </p>
-            </div>
-          </div>
+          <button
+            onClick={() => signOut()}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-200"
+          >
+            <LogOut className="h-5 w-5" />
+            Sair
+          </button>
         </div>
       </div>
     </aside>
