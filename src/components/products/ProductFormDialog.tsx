@@ -160,14 +160,14 @@ export function ProductFormDialog({
             <div>
               <Label htmlFor="supplier_id">Fornecedor</Label>
               <Select
-                value={watch('supplier_id') || ''}
-                onValueChange={(value) => setValue('supplier_id', value || undefined)}
+                value={watch('supplier_id') || 'none'}
+                onValueChange={(value) => setValue('supplier_id', value === 'none' ? undefined : value)}
               >
                 <SelectTrigger className="mt-1.5">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {suppliers?.map((supplier) => (
                     <SelectItem key={supplier.id} value={supplier.id}>
                       {supplier.name}
