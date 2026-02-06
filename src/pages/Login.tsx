@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, Eye, EyeOff, ShoppingCart, TrendingUp, Shield, Zap, Clock, Star, ArrowRight } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -175,6 +176,21 @@ const Login = () => {
                 </div>
               </div>
 
+              {/* Remember me & Forgot password */}
+              {isLogin && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="remember" />
+                    <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                      Manter conectado
+                    </label>
+                  </div>
+                  <button type="button" className="text-sm text-primary font-medium hover:underline">
+                    Recuperar senha
+                  </button>
+                </div>
+              )}
+
               {/* Submit */}
               <Button type="submit" className="w-full h-12 rounded-xl text-base gap-2" disabled={loading}>
                 {loading ? "Carregando..." : isLogin ? "Entrar no Painel" : "Criar Conta"}
@@ -192,6 +208,18 @@ const Login = () => {
                 {isLogin ? "Cadastre-se grátis" : "Fazer login"}
               </button>
             </p>
+
+            {/* Admin access note */}
+            {isLogin && (
+              <div className="mt-6 pt-6 border-t border-border text-center">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-2">
+                  Acesso Administrativo
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Ambiente de demonstração local. Qualquer credencial válida permite o acesso.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
