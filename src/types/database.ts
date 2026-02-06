@@ -27,6 +27,7 @@ export const categoryLabels: Record<ProductCategory, string> = {
 
 export interface Supplier {
   id: string;
+  user_id: string;
   name: string;
   phone: string | null;
   email: string | null;
@@ -35,6 +36,7 @@ export interface Supplier {
 
 export interface Product {
   id: string;
+  user_id: string;
   name: string;
   category: ProductCategory;
   cost_price: number;
@@ -52,6 +54,7 @@ export interface Product {
 
 export interface Sale {
   id: string;
+  user_id: string;
   product_id: string;
   quantity: number;
   unit_price: number;
@@ -65,6 +68,7 @@ export interface Sale {
 
 export interface Expense {
   id: string;
+  user_id: string;
   description: string;
   amount: number;
   expense_date: string;
