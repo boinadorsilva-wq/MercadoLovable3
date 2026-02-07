@@ -5,6 +5,8 @@ import { useEffect } from "react";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading } = useAuth();
+  const location = useLocation();
+  const { status, isLoading: subscriptionLoading } = useSubscription();
 
   // Debugging auth state
   useEffect(() => {
@@ -15,7 +17,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     });
   }, [session, loading]);
 
-  if (loading) {
+  if (loading || subscriptionLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -25,20 +27,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!session) {
     return <Navigate to="/login" replace />;
-  }
-
-  // Subscription check
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const location = useLocation();
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { status, isLoading } = useSubscription();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
   }
 
   if (status === 'expired' && location.pathname !== '/planos') {
