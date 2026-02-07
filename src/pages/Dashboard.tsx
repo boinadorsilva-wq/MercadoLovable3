@@ -18,6 +18,11 @@ import {
   Target,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2 } from "lucide-react";
 
 export default function Dashboard() {
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics();
@@ -25,6 +30,20 @@ export default function Dashboard() {
   const { data: topProducts, isLoading: topLoading } = useTopProducts(5);
   const { data: lowStockProducts } = useLowStockProducts();
   const { data: expiringProducts } = useExpiringProducts();
+
+  // Payment Success Handling
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('payment_success') === 'true') {
+      setShowSuccessDialog(true);
+      // Clean URL
+      navigate('/', { replace: true });
+    }
+  }, [location, navigate]);
 
   return (
     <AppLayout>
@@ -38,6 +57,26 @@ export default function Dashboard() {
             Visão geral do desempenho do seu negócio
           </p>
         </div>
+
+        <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-center text-xl flex flex-col items-center gap-2">
+                <CheckCircle2 className="h-12 w-12 text-green-500" />
+                Pagamento Confirmado!
+              </DialogTitle>
+              <DialogDescription className="text-center">
+                Parabéns! Você acaba de receber acesso liberado ao Mercado PRO.
+                Aproveite todos os recursos para gerenciar seu negócio.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center pt-4">
+              <Button onClick={() => setShowSuccessDialog(false)} className="w-full">
+                Começar a Usar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Main Metrics */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

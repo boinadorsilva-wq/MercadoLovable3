@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PricingCard } from "@/components/plans/PricingCard";
 import { Check, Star } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Planos() {
     const handleSubscribe = (plan: string) => {
@@ -8,6 +9,9 @@ export default function Planos() {
         console.log(`Assinando plano: ${plan}`);
         // window.location.href = "https://wa.me/5511999999999?text=Olá, gostaria de assinar o plano " + plan;
     };
+
+    const { user } = useAuth();
+    const emailParam = user?.email ? `?email=${encodeURIComponent(user.email)}` : "";
 
     const commonFeatures = [
         { text: "Gestão de Produtos Ilimitada", included: true },
@@ -38,7 +42,7 @@ export default function Planos() {
                         period="mês"
                         description="Perfeito para quem está começando."
                         features={commonFeatures}
-                        actionUrl="https://pay.cakto.com.br/yginmsb"
+                        actionUrl={`https://pay.cakto.com.br/yginmsb${emailParam}`}
                         onSubscribe={() => handleSubscribe("Mensal")}
                     />
 
@@ -53,7 +57,7 @@ export default function Planos() {
                             { text: "Consultoria Inicial Grátis", included: true },
                         ]}
                         onSubscribe={() => handleSubscribe("Trimestral")}
-                        actionUrl="https://pay.cakto.com.br/ehfyy3k_757945"
+                        actionUrl={`https://pay.cakto.com.br/ehfyy3k_757945${emailParam}`}
                         buttonText="Assinar Trimestral"
                     />
 
@@ -69,7 +73,7 @@ export default function Planos() {
                             { text: "Gestor de Conta Dedicado", included: true },
                         ]}
                         onSubscribe={() => handleSubscribe("Anual")}
-                        actionUrl="https://pay.cakto.com.br/b64ubmg"
+                        actionUrl={`https://pay.cakto.com.br/b64ubmg${emailParam}`}
                         buttonText="Assinar Anual"
                     />
                 </div>
