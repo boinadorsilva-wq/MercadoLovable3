@@ -7,6 +7,7 @@ import {
   BarChart3,
   AlertTriangle,
   Search,
+  CreditCard,
   LogOut,
   Store,
 } from 'lucide-react';
@@ -19,6 +20,7 @@ const navigation = [
   { name: 'Relatórios', href: '/relatorios', icon: BarChart3 },
   { name: 'Alertas', href: '/alertas', icon: AlertTriangle },
   { name: 'Buscar', href: '/buscar', icon: Search },
+  { name: 'Planos', href: '/planos', icon: CreditCard },
 ];
 
 export function Sidebar() {
