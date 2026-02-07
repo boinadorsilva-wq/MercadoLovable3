@@ -1,9 +1,19 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useLocation } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useEffect } from "react";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading } = useAuth();
+
+  // Debugging auth state
+  useEffect(() => {
+    console.log('[ProtectedRoute] Estado Auth:', {
+      temSessao: !!session,
+      carregando: loading,
+      caminho: window.location.pathname
+    });
+  }, [session, loading]);
 
   if (loading) {
     return (

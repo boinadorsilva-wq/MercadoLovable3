@@ -11,7 +11,21 @@ export default function Planos() {
     };
 
     const { user } = useAuth();
-    const emailParam = user?.email ? `?email=${encodeURIComponent(user.email)}` : "";
+
+    const getCheckoutUrl = (baseUrl: string) => {
+        if (!user) return baseUrl;
+
+        const params = new URLSearchParams();
+        if (user.email) params.append('email', user.email);
+
+        // Tenta obter dados do metadata do usuário se existirem
+        const metadata = user.user_metadata || {};
+        if (metadata.full_name || metadata.name) params.append('name', metadata.full_name || metadata.name);
+        if (metadata.cpf) params.append('cpf', metadata.cpf);
+        if (metadata.phone) params.append('phone', metadata.phone);
+
+        return `${baseUrl}?${params.toString()}`;
+    };
 
     const commonFeatures = [
         { text: "Gestão de Produtos Ilimitada", included: true },
@@ -42,7 +56,7 @@ export default function Planos() {
                         period="mês"
                         description="Perfeito para quem está começando."
                         features={commonFeatures}
-                        actionUrl={`https://pay.cakto.com.br/yginmsb${emailParam}`}
+                        actionUrl={getCheckoutUrl("https://pay.cakto.com.br/yginmsb")}
                         onSubscribe={() => handleSubscribe("Mensal")}
                     />
 
@@ -57,7 +71,7 @@ export default function Planos() {
                             { text: "Consultoria Inicial Grátis", included: true },
                         ]}
                         onSubscribe={() => handleSubscribe("Trimestral")}
-                        actionUrl={`https://pay.cakto.com.br/ehfyy3k_757945${emailParam}`}
+                        actionUrl={getCheckoutUrl("https://pay.cakto.com.br/ehfyy3k_757945")}
                         buttonText="Assinar Trimestral"
                     />
 
@@ -73,7 +87,7 @@ export default function Planos() {
                             { text: "Gestor de Conta Dedicado", included: true },
                         ]}
                         onSubscribe={() => handleSubscribe("Anual")}
-                        actionUrl={`https://pay.cakto.com.br/b64ubmg${emailParam}`}
+                        actionUrl={getCheckoutUrl("https://pay.cakto.com.br/b64ubmg")}
                         buttonText="Assinar Anual"
                     />
                 </div>

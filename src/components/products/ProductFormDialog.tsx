@@ -15,9 +15,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCreateProduct, useUpdateProduct } from '@/hooks/useProducts';
-import { useSuppliers } from '@/hooks/useSuppliers';
+import { useSuppliers, useCreateSupplier } from '@/hooks/useSuppliers';
+import { useAuth } from '@/hooks/useAuth';
 import { Product, ProductCategory, categoryLabels } from '@/types/database';
+import { Plus, Check, X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
+// ... (schema remains same)
 const productSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').max(100, 'Nome muito longo'),
   category: z.string().min(1, 'Categoria é obrigatória'),
@@ -45,9 +49,15 @@ export function ProductFormDialog({
   product,
 }: ProductFormDialogProps) {
   const isEditing = !!product;
+  const { user } = useAuth();
   const { data: suppliers } = useSuppliers();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
+  const createSupplier = useCreateSupplier();
+
+  const [isAddingSupplier, setIsAddingSupplier] = useState(false);
+  const [newSupplierName, setNewSupplierName] = useState('');
+  const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);
 
   const {
     register,
@@ -60,23 +70,23 @@ export function ProductFormDialog({
     resolver: zodResolver(productSchema),
     defaultValues: product
       ? {
-          name: product.name,
-          category: product.category,
-          cost_price: product.cost_price,
-          sale_price: product.sale_price,
-          supplier_id: product.supplier_id || undefined,
-          stock_quantity: product.stock_quantity,
-          min_stock: product.min_stock,
-          entry_date: product.entry_date,
-          expiry_date: product.expiry_date || undefined,
-          notes: product.notes || undefined,
-        }
+        name: product.name,
+        category: product.category,
+        cost_price: product.cost_price,
+        sale_price: product.sale_price,
+        supplier_id: product.supplier_id || undefined,
+        stock_quantity: product.stock_quantity,
+        min_stock: product.min_stock,
+        entry_date: product.entry_date,
+        expiry_date: product.expiry_date || undefined,
+        notes: product.notes || undefined,
+      }
       : {
-          category: 'outros',
-          stock_quantity: 0,
-          min_stock: 5,
-          entry_date: new Date().toISOString().split('T')[0],
-        },
+        category: 'outros',
+        stock_quantity: 0,
+        min_stock: 5,
+        entry_date: new Date().toISOString().split('T')[0],
+      },
   });
 
   const costPrice = watch('cost_price');
@@ -84,7 +94,33 @@ export function ProductFormDialog({
   const unitProfit = salePrice && costPrice ? salePrice - costPrice : 0;
   const margin = costPrice && costPrice > 0 ? ((salePrice - costPrice) / costPrice) * 100 : 0;
 
+  const handleCreateSupplier = async () => {
+    if (!newSupplierName.trim() || !user) return;
+    setIsCreatingSupplier(true);
+    try {
+      const newSupplier = await createSupplier.mutateAsync({
+        name: newSupplierName,
+        email: null,
+        phone: null,
+        user_id: user.id
+      });
+      setValue('supplier_id', newSupplier.id);
+      setIsAddingSupplier(false);
+      setNewSupplierName('');
+      toast.success('Fornecedor criado!');
+    } catch (error) {
+      // toast handled by hook
+    } finally {
+      setIsCreatingSupplier(false);
+    }
+  };
+
   const onSubmit = async (data: ProductFormData) => {
+    if (!user) {
+      toast.error('Erro de autenticação');
+      return;
+    }
+
     try {
       const productData = {
         name: data.name,
@@ -97,6 +133,7 @@ export function ProductFormDialog({
         entry_date: data.entry_date,
         expiry_date: data.expiry_date || null,
         notes: data.notes || null,
+        user_id: user.id
       };
 
       if (isEditing) {
@@ -159,22 +196,61 @@ export function ProductFormDialog({
 
             <div>
               <Label htmlFor="supplier_id">Fornecedor</Label>
-              <Select
-                value={watch('supplier_id') || 'none'}
-                onValueChange={(value) => setValue('supplier_id', value === 'none' ? undefined : value)}
-              >
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
-                  {suppliers?.map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.id}>
-                      {supplier.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isAddingSupplier ? (
+                <div className="flex gap-2 mt-1.5">
+                  <Input
+                    value={newSupplierName}
+                    onChange={(e) => setNewSupplierName(e.target.value)}
+                    placeholder="Nome do fornecedor"
+                    className="h-10"
+                    autoFocus
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    onClick={handleCreateSupplier}
+                    disabled={isCreatingSupplier || !newSupplierName}
+                  >
+                    {isCreatingSupplier ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsAddingSupplier(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2 mt-1.5">
+                  <Select
+                    value={watch('supplier_id') || 'none'}
+                    onValueChange={(value) => setValue('supplier_id', value === 'none' ? undefined : value)}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {suppliers?.map((supplier) => (
+                        <SelectItem key={supplier.id} value={supplier.id}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsAddingSupplier(true)}
+                    title="Adicionar Fornecedor"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div>

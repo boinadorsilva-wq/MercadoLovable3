@@ -24,6 +24,11 @@ const Login = () => {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo de volta ao MercadoPro.",
+          className: "bg-green-600 text-white border-none",
+        });
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
@@ -35,13 +40,14 @@ const Login = () => {
         toast({
           title: "Conta criada com sucesso!",
           description: "Você já pode acessar o painel.",
+          className: "bg-green-600 text-white border-none",
         });
         navigate("/");
       }
     } catch (error: any) {
       toast({
-        title: "Erro",
-        description: error.message,
+        title: "Erro de acesso",
+        description: "Verifique suas credenciais e tente novamente.",
         variant: "destructive",
       });
     } finally {

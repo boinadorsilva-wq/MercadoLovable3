@@ -10,6 +10,7 @@ import {
   CreditCard,
   LogOut,
   Store,
+  Calendar,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -17,6 +18,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Produtos', href: '/produtos', icon: Package },
   { name: 'Vendas', href: '/vendas', icon: ShoppingCart },
+  { name: 'Calendário', href: '/calendario', icon: Calendar },
   { name: 'Relatórios', href: '/relatorios', icon: BarChart3 },
   { name: 'Alertas', href: '/alertas', icon: AlertTriangle },
   { name: 'Buscar', href: '/buscar', icon: Search },
