@@ -23,7 +23,6 @@ const navigation = [
   { name: 'Relatórios', href: '/relatorios', icon: BarChart3 },
   { name: 'Alertas', href: '/alertas', icon: AlertTriangle },
   { name: 'Buscar', href: '/buscar', icon: Search },
-  { name: 'Buscar', href: '/buscar', icon: Search },
   { name: 'Planos', href: '/planos', icon: CreditCard },
   { name: 'Configurações', href: '/configuracoes', icon: Settings },
 ];
