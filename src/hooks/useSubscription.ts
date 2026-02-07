@@ -1,0 +1,77 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+
+export type SubscriptionStatus = 'active' | 'expired' | 'none' | 'loading';
+
+interface SubscriptionState {
+    status: SubscriptionStatus;
+    daysRemaining: number | null;
+    expiresAt: string | null;
+    planType: string | null;
+    isLoading: boolean;
+}
+
+export function useSubscription() {
+    const { user } = useAuth();
+    const [subscription, setSubscription] = useState<SubscriptionState>({
+        status: 'loading',
+        daysRemaining: null,
+        expiresAt: null,
+        planType: null,
+        isLoading: true
+    });
+
+    useEffect(() => {
+        if (!user) {
+            setSubscription(prev => ({ ...prev, status: 'none', isLoading: false }));
+            return;
+        }
+
+        const fetchSubscription = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('user_subscriptions' as any)
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .maybeSingle(); // Use maybeSingle to avoid 406 if multiple (shouldn't happen with logic but safe)
+
+                if (error) throw error;
+
+                if (!data) {
+                    setSubscription({
+                        status: 'none',
+                        daysRemaining: null,
+                        expiresAt: null,
+                        planType: null,
+                        isLoading: false
+                    });
+                    return;
+                }
+
+                const subscriptionData = data as any;
+                const expiresAt = new Date(subscriptionData.expires_at);
+                const now = new Date();
+                const diffTime = expiresAt.getTime() - now.getTime();
+                const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const customStatus = subscriptionData.status === 'active' && daysRemaining > 0 ? 'active' : 'expired';
+
+                setSubscription({
+                    status: customStatus,
+                    daysRemaining,
+                    expiresAt: subscriptionData.expires_at,
+                    planType: subscriptionData.plan_type,
+                    isLoading: false
+                });
+
+            } catch (error) {
+                console.error('Error fetching subscription:', error);
+                setSubscription(prev => ({ ...prev, status: 'none', isLoading: false }));
+            }
+        };
+
+        fetchSubscription();
+    }, [user]);
+
+    return subscription;
+}

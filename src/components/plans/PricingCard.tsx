@@ -16,7 +16,8 @@ interface PricingCardProps {
     features: PricingFeature[];
     isPopular?: boolean;
     buttonText?: string;
-    onSubscribe: () => void;
+    onSubscribe?: () => void;
+    actionUrl?: string;
 }
 
 export function PricingCard({
@@ -28,6 +29,7 @@ export function PricingCard({
     isPopular = false,
     buttonText = "Assinar Agora",
     onSubscribe,
+    actionUrl,
 }: PricingCardProps) {
     return (
         <Card
@@ -77,7 +79,13 @@ export function PricingCard({
                 <Button
                     className={cn("w-full", isPopular ? "default" : "variant='outline'")}
                     variant={isPopular ? "default" : "outline"}
-                    onClick={onSubscribe}
+                    onClick={() => {
+                        if (actionUrl) {
+                            window.open(actionUrl, '_blank', 'noopener,noreferrer');
+                        } else if (onSubscribe) {
+                            onSubscribe();
+                        }
+                    }}
                 >
                     {buttonText}
                 </Button>

@@ -4,9 +4,9 @@ import { Check, Star } from "lucide-react";
 
 export default function Planos() {
     const handleSubscribe = (plan: string) => {
-        // TODO: Implement checkout logic
+        // Fallback if actionUrl fails
         console.log(`Assinando plano: ${plan}`);
-        window.location.href = "https://wa.me/5511999999999?text=Olá, gostaria de assinar o plano " + plan;
+        // window.location.href = "https://wa.me/5511999999999?text=Olá, gostaria de assinar o plano " + plan;
     };
 
     const commonFeatures = [
@@ -38,6 +38,7 @@ export default function Planos() {
                         period="mês"
                         description="Perfeito para quem está começando."
                         features={commonFeatures}
+                        actionUrl="https://pay.cakto.com.br/yginmsb"
                         onSubscribe={() => handleSubscribe("Mensal")}
                     />
 
@@ -52,6 +53,7 @@ export default function Planos() {
                             { text: "Consultoria Inicial Grátis", included: true },
                         ]}
                         onSubscribe={() => handleSubscribe("Trimestral")}
+                        actionUrl="https://pay.cakto.com.br/ehfyy3k_757945"
                         buttonText="Assinar Trimestral"
                     />
 
@@ -67,6 +69,7 @@ export default function Planos() {
                             { text: "Gestor de Conta Dedicado", included: true },
                         ]}
                         onSubscribe={() => handleSubscribe("Anual")}
+                        actionUrl="https://pay.cakto.com.br/b64ubmg"
                         buttonText="Assinar Anual"
                     />
                 </div>
