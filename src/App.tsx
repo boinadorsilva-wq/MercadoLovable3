@@ -15,6 +15,7 @@ import Planos from "./pages/Planos";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Calendario from "./pages/Calendario";
+import Configuracoes from "./pages/Configuracoes";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/alertas" element={<ProtectedRoute><Alertas /></ProtectedRoute>} />
             <Route path="/buscar" element={<ProtectedRoute><Buscar /></ProtectedRoute>} />
             <Route path="/planos" element={<ProtectedRoute><Planos /></ProtectedRoute>} />
+            <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

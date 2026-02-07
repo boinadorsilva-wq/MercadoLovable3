@@ -16,9 +16,10 @@ import {
 } from '@/components/ui/select';
 import { useCreateProduct, useUpdateProduct } from '@/hooks/useProducts';
 import { useSuppliers, useCreateSupplier } from '@/hooks/useSuppliers';
+import { useCategories, useCreateCategory, useDeleteCategory } from '@/hooks/useCategories';
 import { useAuth } from '@/hooks/useAuth';
 import { Product, ProductCategory, categoryLabels } from '@/types/database';
-import { Plus, Check, X, Loader2 } from 'lucide-react';
+import { Plus, Check, X, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ... (schema remains same)
@@ -51,13 +52,20 @@ export function ProductFormDialog({
   const isEditing = !!product;
   const { user } = useAuth();
   const { data: suppliers } = useSuppliers();
+  const { data: customCategories } = useCategories();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const createSupplier = useCreateSupplier();
+  const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
 
   const [isAddingSupplier, setIsAddingSupplier] = useState(false);
   const [newSupplierName, setNewSupplierName] = useState('');
   const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);
+
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
 
   const {
     register,
@@ -112,6 +120,46 @@ export function ProductFormDialog({
       // toast handled by hook
     } finally {
       setIsCreatingSupplier(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim() || !user) return;
+    setIsCreatingCategory(true);
+    try {
+      const newCategory = await createCategory.mutateAsync({
+        name: newCategoryName,
+        user_id: user.id
+      });
+      setValue('category', newCategory.name);
+      setIsAddingCategory(false);
+      setNewCategoryName('');
+      // toast handled by hook
+    } catch (error) {
+      // toast handled by hook
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    const currentCategory = watch('category');
+    if (!currentCategory) return;
+
+    // Find if it's a custom category
+    const customCat = customCategories?.find(c => c.name === currentCategory);
+    if (!customCat) {
+      toast.error('Não é possível remover categorias padrão do sistema.');
+      return;
+    }
+
+    if (confirm(`Tem certeza que deseja remover a categoria "${currentCategory}"?`)) {
+      try {
+        await deleteCategory.mutateAsync(customCat.id);
+        setValue('category', '');
+      } catch (error) {
+        // toast handled by hook
+      }
     }
   };
 
@@ -174,21 +222,86 @@ export function ProductFormDialog({
 
             <div>
               <Label htmlFor="category">Categoria *</Label>
-              <Select
-                value={watch('category')}
-                onValueChange={(value) => setValue('category', value)}
-              >
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(categoryLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isAddingCategory ? (
+                <div className="flex gap-2 mt-1.5">
+                  <Input
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Nova categoria"
+                    className="h-10"
+                    autoFocus
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    onClick={handleCreateCategory}
+                    disabled={isCreatingCategory || !newCategoryName}
+                  >
+                    {isCreatingCategory ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsAddingCategory(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2 mt-1.5">
+                  <Select
+                    value={watch('category')}
+                    onValueChange={(value) => setValue('category', value)}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none" disabled className="font-semibold text-muted-foreground">
+                        Padrão
+                      </SelectItem>
+                      {Object.entries(categoryLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                      {customCategories && customCategories.length > 0 && (
+                        <>
+                          <SelectItem value="custom-divider" disabled className="font-semibold text-muted-foreground mt-2 border-t pt-2">
+                            Personalizadas
+                          </SelectItem>
+                          {customCategories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.name}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsAddingCategory(true)}
+                    title="Adicionar Categoria"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleDeleteCategory}
+                    disabled={!customCategories?.some(c => c.name === watch('category'))}
+                    title="Remover Categoria Selecionada"
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
               {errors.category && (
                 <p className="text-sm text-destructive mt-1">{errors.category.message}</p>
               )}

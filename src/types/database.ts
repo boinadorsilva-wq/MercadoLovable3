@@ -1,4 +1,4 @@
-export type ProductCategory = 
+export type DefaultProductCategory =
   | 'bebidas'
   | 'laticinios'
   | 'carnes'
@@ -11,7 +11,9 @@ export type ProductCategory =
   | 'enlatados'
   | 'outros';
 
-export const categoryLabels: Record<ProductCategory, string> = {
+export type ProductCategory = string;
+
+export const categoryLabels: Record<string, string> = {
   bebidas: 'Bebidas',
   laticinios: 'Laticínios',
   carnes: 'Carnes',
@@ -38,7 +40,7 @@ export interface Product {
   id: string;
   user_id: string;
   name: string;
-  category: ProductCategory;
+  category: string;
   cost_price: number;
   sale_price: number;
   supplier_id: string | null;
