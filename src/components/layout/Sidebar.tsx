@@ -11,7 +11,6 @@ import {
   LogOut,
   Store,
   Calendar,
-  Settings,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -24,7 +23,6 @@ const navigation = [
   { name: 'Alertas', href: '/alertas', icon: AlertTriangle },
   { name: 'Buscar', href: '/buscar', icon: Search },
   { name: 'Planos', href: '/planos', icon: CreditCard },
-  { name: 'Configurações', href: '/configuracoes', icon: Settings },
 ];
 
 export function Sidebar() {
