@@ -20,14 +20,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       temSessao: !!session,
       carregando: loading,
       caminho: window.location.pathname,
+      subscriptionStatus: status, // Log adicionado para depuração
       tempoRestanteTrial: timeLeft,
       trialExpirado: isExpired
     });
-  }, [session, loading, timeLeft, isExpired]);
+  }, [session, loading, status, timeLeft, isExpired]);
 
-  // Notify user about trial
+  // Notify user about trial - APENAS para quem NÃO tem assinatura (status === 'none')
   useEffect(() => {
-    if (session && !subscriptionLoading && status !== 'active' && timeLeft !== null && timeLeft > 0 && !hasNotified) {
+    if (session && !subscriptionLoading && status === 'none' && timeLeft !== null && timeLeft > 0 && !hasNotified) {
       toast({
         title: "Período de Teste",
         description: `Você tem ${timeLeft} segundos de acesso gratuito para testar o sistema.`,
@@ -49,11 +50,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Se não tem assinatura ativa E o trial expirou, redireciona para planos
-  // Exceto se já estiver na página de planos
-  if (status !== 'active' && isExpired && location.pathname !== '/planos') {
+  // Se já estiver na página de planos, permite acesso para escolher um plano
+  if (location.pathname === '/planos') {
+    return <>{children}</>;
+  }
+
+  // 1. Bloqueio para Assinatura Expirada (Prioridade Alta - sem trial)
+  if (status === 'expired') {
     return <Navigate to="/planos" replace />;
   }
+
+  // 2. Bloqueio para Usuários Sem Assinatura que Esgotaram o Trial
+  if (status === 'none' && isExpired) {
+    return <Navigate to="/planos" replace />;
+  }
+
+  // Se status === 'active', passa direto.
+  // Se status === 'none' e !isExpired, passa direto (período de teste).
 
   return <>{children}</>;
 };
