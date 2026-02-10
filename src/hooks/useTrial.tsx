@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 
-const TRIAL_DURATION_MS = 30 * 1000; // 30 seconds
+const TRIAL_DURATION_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 const STORAGE_KEY_PREFIX = 'trial_start_';
 
 export function useTrial() {

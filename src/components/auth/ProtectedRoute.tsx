@@ -31,7 +31,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     if (session && !subscriptionLoading && status === 'none' && timeLeft !== null && timeLeft > 0 && !hasNotified) {
       toast({
         title: "Período de Teste",
-        description: `Você tem ${timeLeft} segundos de acesso gratuito para testar o sistema.`,
+        description: `Você tem ${Math.ceil(timeLeft / (24 * 60 * 60))} dias de acesso gratuito para testar o sistema.`,
         duration: 5000,
       });
       setHasNotified(true);
