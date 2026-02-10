@@ -30,55 +30,73 @@ export default function Vendas() {
 
     setIsProcessing(true);
     try {
-      // Parse input: "Product - Quantity - Method" or "Product Name 2 credito"
       const lowerInput = quickSaleInput.toLowerCase();
 
-      // Detect payment method (keywords)
+      // 1. Extract Payment Method
       let paymentMethod = 'dinheiro';
-      if (lowerInput.includes('pix')) paymentMethod = 'pix';
-      else if (lowerInput.includes('credito') || lowerInput.includes('crédito')) paymentMethod = 'credito';
-      else if (lowerInput.includes('debito') || lowerInput.includes('débito')) paymentMethod = 'debito';
+      let inputWithoutPayment = lowerInput;
 
-      // Remove payment keywords from string to avoid confusion with product name
-      let cleanInput = lowerInput
-        .replace('pix', '')
-        .replace('credito', '')
-        .replace('crédito', '')
-        .replace('debito', '')
-        .replace('débito', '')
-        .replace('dinheiro', '');
+      if (lowerInput.includes('pix')) {
+        paymentMethod = 'pix';
+        inputWithoutPayment = lowerInput.replace('pix', '');
+      } else if (lowerInput.includes('credito') || lowerInput.includes('crédito')) {
+        paymentMethod = 'credito';
+        inputWithoutPayment = lowerInput.replace('credito', '').replace('crédito', '');
+      } else if (lowerInput.includes('debito') || lowerInput.includes('débito')) {
+        paymentMethod = 'debito';
+        inputWithoutPayment = lowerInput.replace('debito', '').replace('débito', '');
+      } else if (lowerInput.includes('dinheiro')) {
+        paymentMethod = 'dinheiro';
+        inputWithoutPayment = lowerInput.replace('dinheiro', '');
+      }
 
-      // Strategy 1: Split by hyphen
-      let nameQuery = '';
+      // 2. Extract Quantity
       let quantity = 1;
+      let nameQuery = inputWithoutPayment;
 
-      if (cleanInput.includes('-')) {
-        const parts = cleanInput.split('-').map(p => p.trim()).filter(p => p);
-        nameQuery = parts[0];
-        if (parts[1]) {
-          const qtyParse = parseInt(parts[1].replace(/[^0-9]/g, ''));
-          if (!isNaN(qtyParse)) quantity = qtyParse;
+      // Check for "Product - Quantity" format first (hyphen separator)
+      if (inputWithoutPayment.includes('-')) {
+        const parts = inputWithoutPayment.split('-').map(p => p.trim()).filter(p => p);
+        if (parts.length >= 2) {
+          // First part is likely name, second part is likely quantity
+          const possibleQty = parseInt(parts[1].replace(/[^0-9]/g, ''));
+          if (!isNaN(possibleQty) && possibleQty > 0) {
+            quantity = possibleQty;
+            nameQuery = parts[0];
+          } else {
+            // Try reverse? No, usually expect Name - Qty. 
+            // If not number, maybe it's part of name.
+            nameQuery = inputWithoutPayment.replace('-', ' ');
+          }
         }
       } else {
-        // Strategy 2: "Product Name Quantity" (last number is quantity)
-        // Check if there is a number at the end or somewhere
-        const matchQty = cleanInput.match(/(\d+)\s*$/); // Number at the end
-        if (matchQty) {
-          quantity = parseInt(matchQty[1]);
-          nameQuery = cleanInput.replace(matchQty[0], '').trim();
-        } else {
-          nameQuery = cleanInput.trim();
+        // Check for number at the end or beginning
+        // Regex to find standalone numbers
+        const numbers = inputWithoutPayment.match(/\b\d+\b/g);
+
+        if (numbers && numbers.length > 0) {
+          // Assume the last number is the quantity if multiple, or the only one
+          const lastNumber = numbers[numbers.length - 1];
+          quantity = parseInt(lastNumber);
+
+          // Remove the quantity number from the name string, but only the specific instance
+          // We need to be careful not to remove numbers that are part of the product name if possible
+          // For now, let's remove the FOUND quantity string
+          nameQuery = inputWithoutPayment.replace(new RegExp(`\\b${lastNumber}\\b`), '').trim();
         }
       }
 
-      if (!nameQuery) throw new Error('Nome do produto inválido');
-      if (isNaN(quantity) || quantity <= 0) throw new Error('Quantidade inválida');
+      // Clean up name
+      nameQuery = nameQuery.trim().replace(/\s+/g, ' ');
+
+      if (!nameQuery) throw new Error('Nome do produto não identificado.');
+      if (isNaN(quantity) || quantity <= 0) quantity = 1; // Default to 1 if parsing failed but name exists
 
       // Find product
       const product = products?.find(p => p.name.toLowerCase().includes(nameQuery));
 
       if (!product) {
-        toast.error('Produto não encontrado. Verifique o nome.');
+        toast.error(`Produto "${nameQuery}" não encontrado.`);
         setIsProcessing(false);
         return;
       }

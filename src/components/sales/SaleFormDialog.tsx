@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -51,6 +52,7 @@ export function SaleFormDialog({ open, onOpenChange }: SaleFormDialogProps) {
 
   const selectedProductId = watch('product_id');
   const quantity = watch('quantity') || 1;
+  const paymentMethod = watch('payment_method');
   const selectedProduct = products?.find((p) => p.id === selectedProductId);
 
   const totalPrice = selectedProduct ? selectedProduct.sale_price * quantity : 0;
@@ -130,6 +132,52 @@ export function SaleFormDialog({ open, onOpenChange }: SaleFormDialogProps) {
                   Disponível: {selectedProduct.stock_quantity} unidades
                 </p>
               )}
+            </div>
+
+            <div>
+              <Label className="mb-2 block">Forma de Pagamento</Label>
+              <RadioGroup
+                value={paymentMethod}
+                onValueChange={(value) => setValue('payment_method', value as any)}
+                className="grid grid-cols-4 gap-2"
+              >
+                <div>
+                  <RadioGroupItem value="dinheiro" id="dinheiro" className="peer sr-only" />
+                  <Label
+                    htmlFor="dinheiro"
+                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer text-xs"
+                  >
+                    Dinheiro
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem value="credito" id="credito" className="peer sr-only" />
+                  <Label
+                    htmlFor="credito"
+                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer text-xs"
+                  >
+                    Crédito
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem value="debito" id="debito" className="peer sr-only" />
+                  <Label
+                    htmlFor="debito"
+                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer text-xs"
+                  >
+                    Débito
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem value="pix" id="pix" className="peer sr-only" />
+                  <Label
+                    htmlFor="pix"
+                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer text-xs"
+                  >
+                    PIX
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
 
             {selectedProduct && (
