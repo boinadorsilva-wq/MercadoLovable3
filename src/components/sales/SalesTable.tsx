@@ -72,6 +72,7 @@ export function SalesTable({ sales }: SalesTableProps) {
               <TableHead className="text-right">Preço Unit.</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead className="text-right">Lucro</TableHead>
+              <TableHead>Pagamento</TableHead>
               <TableHead>Data/Hora</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
@@ -98,6 +99,11 @@ export function SalesTable({ sales }: SalesTableProps) {
                   </TableCell>
                   <TableCell className="text-right text-success font-medium">
                     {formatCurrency(sale.profit)}
+                  </TableCell>
+                  <TableCell className="capitalize">
+                    {sale.payment_method === 'credito' ? 'Crédito' :
+                      sale.payment_method === 'debito' ? 'Débito' :
+                        sale.payment_method === 'pix' ? 'PIX' : 'Dinheiro'}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDateTime(sale.sale_date)}

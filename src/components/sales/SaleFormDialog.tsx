@@ -20,6 +20,7 @@ import { formatCurrency } from '@/lib/format';
 const saleSchema = z.object({
   product_id: z.string().min(1, 'Selecione um produto'),
   quantity: z.number().min(1, 'Quantidade mínima é 1'),
+  payment_method: z.enum(['dinheiro', 'pix', 'credito', 'debito']),
 });
 
 type SaleFormData = z.infer<typeof saleSchema>;
@@ -44,6 +45,7 @@ export function SaleFormDialog({ open, onOpenChange }: SaleFormDialogProps) {
     resolver: zodResolver(saleSchema),
     defaultValues: {
       quantity: 1,
+      payment_method: 'dinheiro',
     },
   });
 
@@ -61,6 +63,7 @@ export function SaleFormDialog({ open, onOpenChange }: SaleFormDialogProps) {
       await createSale.mutateAsync({
         productId: data.product_id,
         quantity: data.quantity,
+        paymentMethod: data.payment_method,
       });
       reset();
       onOpenChange(false);

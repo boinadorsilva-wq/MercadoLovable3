@@ -51,7 +51,7 @@ export function useCreateSale() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ productId, quantity }: { productId: string; quantity: number }) => {
+    mutationFn: async ({ productId, quantity, paymentMethod }: { productId: string; quantity: number; paymentMethod: string }) => {
       // First, get the product to calculate prices
       const { data: product, error: productError } = await supabase
         .from('products')
@@ -81,6 +81,7 @@ export function useCreateSale() {
           cost_price: typedProduct.cost_price,
           total_price: totalPrice,
           profit,
+          payment_method: paymentMethod,
         })
         .select()
         .single();
@@ -137,6 +138,37 @@ export function useSalesByCategory() {
       });
 
       return byCategory;
+    },
+  });
+}
+
+export function useSalesByPaymentMethod() {
+  return useQuery({
+    queryKey: ['sales', 'by-payment-method'],
+    queryFn: async () => {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const { data, error } = await supabase
+        .from('sales')
+        .select('*')
+        .gte('sale_date', startOfMonth.toISOString());
+
+      if (error) throw error;
+
+      const byMethod: Record<string, { total: number; count: number }> = {};
+
+      (data as any[]).forEach((sale) => {
+        const method = sale.payment_method || 'dinheiro';
+        if (!byMethod[method]) {
+          byMethod[method] = { total: 0, count: 0 };
+        }
+        byMethod[method].total += sale.total_price;
+        byMethod[method].count += sale.quantity;
+      });
+
+      return byMethod;
     },
   });
 }

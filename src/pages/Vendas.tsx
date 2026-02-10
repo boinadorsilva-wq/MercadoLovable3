@@ -30,10 +30,46 @@ export default function Vendas() {
 
     setIsProcessing(true);
     try {
-      // Parse input: "Product Name - Quantity" or just "Product Name" (default qty 1)
-      const parts = quickSaleInput.split('-').map(p => p.trim());
-      const nameQuery = parts[0].toLowerCase();
-      const quantity = parts[1] ? parseInt(parts[1]) : 1;
+      // Parse input: "Product - Quantity - Method" or "Product Name 2 credito"
+      const lowerInput = quickSaleInput.toLowerCase();
+
+      // Detect payment method (keywords)
+      let paymentMethod = 'dinheiro';
+      if (lowerInput.includes('pix')) paymentMethod = 'pix';
+      else if (lowerInput.includes('credito') || lowerInput.includes('crédito')) paymentMethod = 'credito';
+      else if (lowerInput.includes('debito') || lowerInput.includes('débito')) paymentMethod = 'debito';
+
+      // Remove payment keywords from string to avoid confusion with product name
+      let cleanInput = lowerInput
+        .replace('pix', '')
+        .replace('credito', '')
+        .replace('crédito', '')
+        .replace('debito', '')
+        .replace('débito', '')
+        .replace('dinheiro', '');
+
+      // Strategy 1: Split by hyphen
+      let nameQuery = '';
+      let quantity = 1;
+
+      if (cleanInput.includes('-')) {
+        const parts = cleanInput.split('-').map(p => p.trim()).filter(p => p);
+        nameQuery = parts[0];
+        if (parts[1]) {
+          const qtyParse = parseInt(parts[1].replace(/[^0-9]/g, ''));
+          if (!isNaN(qtyParse)) quantity = qtyParse;
+        }
+      } else {
+        // Strategy 2: "Product Name Quantity" (last number is quantity)
+        // Check if there is a number at the end or somewhere
+        const matchQty = cleanInput.match(/(\d+)\s*$/); // Number at the end
+        if (matchQty) {
+          quantity = parseInt(matchQty[1]);
+          nameQuery = cleanInput.replace(matchQty[0], '').trim();
+        } else {
+          nameQuery = cleanInput.trim();
+        }
+      }
 
       if (!nameQuery) throw new Error('Nome do produto inválido');
       if (isNaN(quantity) || quantity <= 0) throw new Error('Quantidade inválida');
@@ -47,16 +83,14 @@ export default function Vendas() {
         return;
       }
 
-      // Check for ambiguity if needed, but for now take the first match
-      // Ideally show a list if multiple, but "Quick Sale" implies speed.
-
       await createSale.mutateAsync({
         productId: product.id,
-        quantity: quantity
+        quantity: quantity,
+        paymentMethod: paymentMethod
       });
 
       setQuickSaleInput('');
-      toast.success(`Venda de ${quantity}x ${product.name} registrada!`);
+      toast.success(`Venda registrada: ${quantity}x ${product.name} (${paymentMethod})`);
     } catch (error: any) {
       toast.error(error.message);
     } finally {

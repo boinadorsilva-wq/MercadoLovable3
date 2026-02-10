@@ -1,10 +1,10 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useMonthlySalesChart } from '@/hooks/useDashboard';
-import { useSalesByCategory, useTopProducts } from '@/hooks/useSales';
+import { useSalesByCategory, useTopProducts, useSalesByPaymentMethod } from '@/hooks/useSales';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { formatCurrency } from '@/lib/format';
 import { categoryLabels, ProductCategory } from '@/types/database';
-import { BarChart3, PieChart, TrendingUp, Download } from 'lucide-react';
+import { BarChart3, PieChart, TrendingUp, Download, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   PieChart as RechartsPieChart,
@@ -39,14 +39,15 @@ export default function Relatorios() {
   const { data: chartData, isLoading: chartLoading } = useMonthlySalesChart();
   const { data: categoryData, isLoading: categoryLoading } = useSalesByCategory();
   const { data: topProducts, isLoading: topLoading } = useTopProducts(10);
+  const { data: paymentData, isLoading: paymentLoading } = useSalesByPaymentMethod();
 
   const pieData = categoryData
     ? Object.entries(categoryData).map(([category, data]) => ({
-        name: categoryLabels[category as ProductCategory] || category,
-        value: data.total,
-        profit: data.profit,
-        count: data.count,
-      }))
+      name: categoryLabels[category as ProductCategory] || category,
+      value: data.total,
+      profit: data.profit,
+      count: data.count,
+    }))
     : [];
 
   const barData = topProducts?.map((product) => ({
@@ -55,7 +56,7 @@ export default function Relatorios() {
     quantidade: product.quantity,
   })) || [];
 
-  const isLoading = chartLoading || categoryLoading || topLoading;
+  const isLoading = chartLoading || categoryLoading || topLoading || paymentLoading;
 
   return (
     <AppLayout>
@@ -222,6 +223,75 @@ export default function Relatorios() {
                     radius={[0, 4, 4, 0]}
                   />
                 </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* Payment Method Pie Chart */}
+          <div className="metric-card">
+            <div className="flex items-center gap-3 mb-4">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <h3 className="text-base font-semibold text-foreground">
+                Vendas por Pagamento
+              </h3>
+            </div>
+            {isLoading ? (
+              <Skeleton className="h-[300px] w-full" />
+            ) : !paymentData || Object.keys(paymentData).length === 0 ? (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                Nenhuma venda registrada
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsPieChart>
+                  <Pie
+                    data={Object.entries(paymentData).map(([method, data]) => ({
+                      name: method === 'credito' ? 'Crédito' :
+                        method === 'debito' ? 'Débito' :
+                          method === 'pix' ? 'PIX' : 'Dinheiro',
+                      value: data.total,
+                      count: data.count
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ name, percent }) =>
+                      `${name} (${(percent * 100).toFixed(0)}%)`
+                    }
+                    labelLine={false}
+                  >
+                    {Object.entries(paymentData).map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="rounded-lg border border-border bg-card p-3 shadow-lg">
+                            <p className="text-sm font-medium text-foreground">
+                              {data.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Total: {formatCurrency(data.value)}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {data.count} pagamentos
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                </RechartsPieChart>
               </ResponsiveContainer>
             )}
           </div>

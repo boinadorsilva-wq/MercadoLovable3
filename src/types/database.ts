@@ -66,6 +66,7 @@ export interface Sale {
   sale_date: string;
   created_at: string;
   product?: Product;
+  payment_method: string;
 }
 
 export interface Expense {
