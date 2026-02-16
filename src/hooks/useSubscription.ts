@@ -34,7 +34,9 @@ export function useSubscription() {
                     .from('user_subscriptions' as any)
                     .select('*')
                     .eq('user_id', user.id)
-                    .maybeSingle(); // Use maybeSingle to avoid 406 if multiple (shouldn't happen with logic but safe)
+                    .order('expires_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
 
                 if (error) throw error;
 
@@ -52,9 +54,16 @@ export function useSubscription() {
                 const subscriptionData = data as any;
                 const expiresAt = new Date(subscriptionData.expires_at);
                 const now = new Date();
+
+                // Calculate difference in milliseconds
                 const diffTime = expiresAt.getTime() - now.getTime();
-                const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                const customStatus = subscriptionData.status === 'active' && daysRemaining > 0 ? 'active' : 'expired';
+
+                // Calculate days remaining (ceil to show "1 day" even if it expires in 1 hour)
+                const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+                // Valid if expiration date is in the future
+                const isValid = expiresAt > now;
+                const customStatus = subscriptionData.status === 'active' && isValid ? 'active' : 'expired';
 
                 setSubscription({
                     status: customStatus,

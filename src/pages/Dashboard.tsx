@@ -18,6 +18,7 @@ import {
   Calendar as CalendarIcon,
   CheckCircle2
 } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -47,6 +48,7 @@ export default function Dashboard() {
   const { data: topProducts, isLoading: topLoading } = useTopProducts(5);
   const { data: lowStockProducts } = useLowStockProducts();
   const { data: expiringProducts } = useExpiringProducts();
+  const subscription = useSubscription();
 
   // Calculate metrics based on filtered sales
   const filteredSales = useMemo(() => {
@@ -295,18 +297,39 @@ export default function Dashboard() {
             lowStockProducts={lowStockProducts || []}
             expiringProducts={expiringProducts || []}
           />
-          <div className="metric-card flex flex-col items-center justify-center py-8">
-            <Target className="h-12 w-12 text-primary mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Dica do Dia
-            </h3>
-            <p className="text-center text-muted-foreground max-w-sm">
-              Cadastre seus produtos e registre vendas para ver análises detalhadas
-              do seu negócio aqui no dashboard.
-            </p>
-          </div>
+          {subscription.isLoading ? (
+            <Skeleton className="h-[200px] w-full rounded-xl" />
+          ) : (!subscription || subscription.status !== 'active') ? (
+            <div className="metric-card bg-primary/5 border-primary/20 flex flex-col items-center justify-center py-8">
+              <Clock className="h-12 w-12 text-primary mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Período de Teste
+              </h3>
+              <p className="text-center text-muted-foreground max-w-sm px-4">
+                Você tem {subscription?.daysRemaining ?? 14} dias de acesso gratuito para testar o sistema.
+              </p>
+              <Button
+                variant="default"
+                className="mt-4"
+                onClick={() => navigate('/planos')}
+              >
+                Assinar Agora
+              </Button>
+            </div>
+          ) : (
+            <div className="metric-card flex flex-col items-center justify-center py-8">
+              <Target className="h-12 w-12 text-primary mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Dica do Dia
+              </h3>
+              <p className="text-center text-muted-foreground max-w-sm">
+                Cadastre seus produtos e registre vendas para ver análises detalhadas
+                do seu negócio aqui no dashboard.
+              </p>
+            </div>
+          )}
         </div>
       </div>
-    </AppLayout>
+    </AppLayout >
   );
 }
