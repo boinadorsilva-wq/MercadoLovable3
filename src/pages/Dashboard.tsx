@@ -3,7 +3,7 @@ import { MetricCard } from '@/components/dashboard/MetricCard';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { TopProductsCard } from '@/components/dashboard/TopProductsCard';
 import { AlertsCard } from '@/components/dashboard/AlertsCard';
-import { useDashboardMetrics, useMonthlySalesChart } from '@/hooks/useDashboard';
+import { useDashboardMetrics, useSalesChart } from '@/hooks/useDashboard';
 import { useTopProducts, useSales } from '@/hooks/useSales';
 import { useLowStockProducts, useExpiringProducts } from '@/hooks/useProducts';
 import { formatCurrency, formatPercent } from '@/lib/format';
@@ -229,11 +229,6 @@ export default function Dashboard() {
                 icon={ShoppingCart}
                 variant="info"
               />
-              import {AddExpenseDialog} from '@/components/dashboard/AddExpenseDialog';
-
-              // ... existing imports ...
-
-              // Inside component:
               <MetricCard
                 title="Despesas"
                 value={formatCurrency(metrics.totalExpenses)}

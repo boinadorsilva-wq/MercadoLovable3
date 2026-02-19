@@ -1,5 +1,5 @@
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useMonthlySalesChart } from '@/hooks/useDashboard';
+import { useSalesChart } from '@/hooks/useDashboard';
 import { useSalesByCategory, useTopProducts, useSalesByPaymentMethod } from '@/hooks/useSales';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { formatCurrency } from '@/lib/format';
@@ -40,7 +40,8 @@ const COLORS = [
 ];
 
 export default function Relatorios() {
-  const { data: chartData, isLoading: chartLoading } = useMonthlySalesChart();
+  const [period, setPeriod] = useState<'today' | 'weekly' | 'monthly'>('monthly');
+  const { data: chartData, isLoading: chartLoading } = useSalesChart(period);
   const { data: categoryData, isLoading: categoryLoading } = useSalesByCategory();
   const { data: topProducts, isLoading: topLoading } = useTopProducts(10);
   const { data: paymentData, isLoading: paymentLoading } = useSalesByPaymentMethod();
@@ -120,17 +121,46 @@ export default function Relatorios() {
 
         {/* Revenue Chart */}
         <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-              <TrendingUp className="h-5 w-5 text-primary" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <TrendingUp className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Evolução {period === 'today' ? 'Diária' : period === 'weekly' ? 'Semanal' : 'Mensal'}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Receita e lucro {period === 'today' ? 'de hoje' : period === 'weekly' ? 'dos últimos 7 dias' : 'dos últimos 6 meses'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">
-                Evolução Mensal
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Receita e lucro dos últimos 6 meses
-              </p>
+
+            <div className="flex bg-muted p-1 rounded-lg">
+              <Button
+                variant={period === 'today' ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setPeriod('today')}
+                className="text-xs"
+              >
+                Hoje
+              </Button>
+              <Button
+                variant={period === 'weekly' ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setPeriod('weekly')}
+                className="text-xs"
+              >
+                Semanal
+              </Button>
+              <Button
+                variant={period === 'monthly' ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setPeriod('monthly')}
+                className="text-xs"
+              >
+                Mensal
+              </Button>
             </div>
           </div>
           {isLoading ? (

@@ -69,77 +69,126 @@ export function useDashboardMetrics() {
   });
 }
 
-export function useMonthlySalesChart() {
+
+export function useSalesChart(period: 'today' | 'weekly' | 'monthly' = 'monthly') {
   return useQuery({
-    queryKey: ['dashboard', 'monthly-chart'],
+    queryKey: ['dashboard', 'chart', period],
     queryFn: async () => {
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-      sixMonthsAgo.setDate(1);
-      sixMonthsAgo.setHours(0, 0, 0, 0);
+      const now = new Date();
+      let startDate = new Date();
+
+      if (period === 'today') {
+        startDate.setHours(0, 0, 0, 0);
+      } else if (period === 'weekly') {
+        startDate.setDate(now.getDate() - 7);
+        startDate.setHours(0, 0, 0, 0);
+      } else {
+        startDate.setMonth(now.getMonth() - 5);
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+      }
 
       // Fetch sales
       const { data: sales, error: salesError } = await supabase
         .from('sales')
         .select('total_price, profit, cost_price, sale_date')
-        .gte('sale_date', sixMonthsAgo.toISOString())
+        .gte('sale_date', startDate.toISOString())
         .order('sale_date');
 
       if (salesError) throw salesError;
 
-      // Fetch expenses
-      const { data: expenses, error: expensesError } = await supabase
-        .from('expenses')
-        .select('amount, expense_date')
-        .gte('expense_date', sixMonthsAgo.toISOString().split('T')[0]);
+      // Fetch expenses (only for weekly and monthly)
+      let expenses: any[] = [];
+      if (period !== 'today') {
+        const { data: expensesData, error: expensesError } = await supabase
+          .from('expenses')
+          .select('amount, expense_date')
+          .gte('expense_date', startDate.toISOString().split('T')[0]);
 
-      if (expensesError) throw expensesError;
+        if (expensesError) throw expensesError;
+        expenses = expensesData || [];
+      }
 
-      const monthlyData: Record<string, { month: string; revenue: number; profit: number; costs: number }> = {};
-      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const chartData: Record<string, { label: string; revenue: number; profit: number; costs: number; order: number }> = {};
 
-      // Initialize months
-      for (let i = 0; i < 6; i++) {
-        const d = new Date(sixMonthsAgo);
-        d.setMonth(d.getMonth() + i);
-        const key = `${d.getFullYear()}-${d.getMonth()}`;
-        const monthName = months[d.getMonth()];
-        monthlyData[key] = { month: monthName, revenue: 0, profit: 0, costs: 0 };
+      // Initialize Data Points
+      if (period === 'today') {
+        for (let i = 0; i <= now.getHours(); i++) {
+          const label = `${i.toString().padStart(2, '0')}:00`;
+          chartData[i] = { label, revenue: 0, profit: 0, costs: 0, order: i };
+        }
+      } else if (period === 'weekly') {
+        const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        for (let i = 0; i < 7; i++) {
+          const d = new Date();
+          d.setDate(now.getDate() - (6 - i));
+          const key = d.toISOString().split('T')[0];
+          const label = days[d.getDay()];
+          chartData[key] = { label, revenue: 0, profit: 0, costs: 0, order: i };
+        }
+      } else {
+        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        for (let i = 0; i < 6; i++) {
+          const d = new Date(startDate);
+          d.setMonth(d.getMonth() + i);
+          const key = `${d.getFullYear()}-${d.getMonth()}`;
+          const label = months[d.getMonth()];
+          chartData[key] = { label, revenue: 0, profit: 0, costs: 0, order: i };
+        }
       }
 
       // Process Sales
       (sales as any[]).forEach((sale) => {
         const date = new Date(sale.sale_date);
-        const key = `${date.getFullYear()}-${date.getMonth()}`;
+        let key = '';
 
-        if (monthlyData[key]) {
-          monthlyData[key].revenue += Number(sale.total_price);
-          // Initial profit from sales (Revenue - Product Cost)
-          // We will subtract expenses later
+        if (period === 'today') {
+          // For today, we might want to check if the sale date is actually today
+          // The query already filters >= startOfToday, but let's be safe with timezone if needed
+          key = date.getHours().toString();
+        } else if (period === 'weekly') {
+          key = date.toISOString().split('T')[0];
+        } else {
+          key = `${date.getFullYear()}-${date.getMonth()}`;
+        }
+
+        if (chartData[key]) {
+          chartData[key].revenue += Number(sale.total_price);
           const productCost = Number(sale.total_price) - Number(sale.profit);
-          monthlyData[key].costs += productCost;
+          chartData[key].costs += productCost;
         }
       });
 
       // Process Expenses
-      (expenses as any[]).forEach((expense) => {
-        const date = new Date(expense.expense_date);
-        // Adjust for timezone if necessary, but date string 'YYYY-MM-DD' usually parses to UTC 00:00
-        // Use verify logic if dates are off by one day due to timezone
-        // For simplicity assuming local date matches report month
-        const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+      if (period !== 'today') {
+        expenses.forEach((expense) => {
+          const date = new Date(expense.expense_date);
+          // Assuming expense_date is YYYY-MM-DD
+          // For weekly, key is YYYY-MM-DD. For monthly, key is YYYY-M
+          let key = '';
+          if (period === 'weekly') {
+            // We need to match the date string directly
+            // expense_date is string 'YYYY-MM-DD'
+            key = expense.expense_date;
+          } else {
+            key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+          }
 
-        if (monthlyData[key]) {
-          monthlyData[key].costs += Number(expense.amount);
-        }
-      });
+          if (chartData[key]) {
+            chartData[key].costs += Number(expense.amount);
+          }
+        });
+      }
 
-      // Calculate Final Profit
-      Object.keys(monthlyData).forEach(key => {
-        monthlyData[key].profit = monthlyData[key].revenue - monthlyData[key].costs;
-      });
-
-      return Object.values(monthlyData);
+      // Calculate Final Profit and format return
+      return Object.values(chartData)
+        .sort((a, b) => a.order - b.order)
+        .map(item => ({
+          month: item.label, // Reusing 'month' key for compatibility with RevenueChart component props
+          revenue: item.revenue,
+          profit: item.revenue - item.costs,
+          costs: item.costs
+        }));
     },
   });
 }
