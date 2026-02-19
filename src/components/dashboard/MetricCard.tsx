@@ -11,6 +11,7 @@ interface MetricCardProps {
     isPositive: boolean;
   };
   variant?: 'default' | 'success' | 'warning' | 'info' | 'primary';
+  action?: React.ReactNode;
 }
 
 const variantStyles = {
@@ -36,12 +37,16 @@ export function MetricCard({
   icon: Icon,
   trend,
   variant = 'default',
+  action,
 }: MetricCardProps) {
   return (
     <div className={cn(variantStyles[variant], 'animate-fade-in')}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <div className="flex items-center justify-between mr-2">
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            {action}
+          </div>
           <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">
             {value}
           </p>

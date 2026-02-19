@@ -29,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { ptBR } from 'date-fns/locale';
 import { format } from 'date-fns';
+import { AddExpenseDialog } from '@/components/dashboard/AddExpenseDialog';
 
 export default function Dashboard() {
   // State for filters
@@ -228,11 +229,17 @@ export default function Dashboard() {
                 icon={ShoppingCart}
                 variant="info"
               />
+              import {AddExpenseDialog} from '@/components/dashboard/AddExpenseDialog';
+
+              // ... existing imports ...
+
+              // Inside component:
               <MetricCard
                 title="Despesas"
                 value={formatCurrency(metrics.totalExpenses)}
                 icon={Receipt}
                 variant="warning"
+                action={<AddExpenseDialog />}
               />
             </>
           )}

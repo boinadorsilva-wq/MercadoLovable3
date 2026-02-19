@@ -10,14 +10,14 @@ import {
 import { formatCurrency } from '@/lib/format';
 
 interface RevenueChartProps {
-  data: { month: string; revenue: number; profit: number }[];
+  data: { month: string; revenue: number; profit: number; costs: number }[];
 }
 
 export function RevenueChart({ data }: RevenueChartProps) {
   return (
     <div className="metric-card h-[350px]">
       <h3 className="text-base font-semibold text-foreground mb-4">
-        Receita e Lucro Mensal
+        Receita, Custos e Lucro Mensal
       </h3>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
@@ -32,6 +32,10 @@ export function RevenueChart({ data }: RevenueChartProps) {
             <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="hsl(200, 70%, 50%)" stopOpacity={0.3} />
               <stop offset="95%" stopColor="hsl(200, 70%, 50%)" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="colorCosts" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -59,6 +63,9 @@ export function RevenueChart({ data }: RevenueChartProps) {
                     <p className="text-sm text-info">
                       Lucro: {formatCurrency(payload[1].value as number)}
                     </p>
+                    <p className="text-sm text-destructive">
+                      Custos: {formatCurrency(payload[2].value as number)}
+                    </p>
                   </div>
                 );
               }
@@ -72,6 +79,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorRevenue)"
+            name="Receita"
           />
           <Area
             type="monotone"
@@ -80,6 +88,16 @@ export function RevenueChart({ data }: RevenueChartProps) {
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorProfit)"
+            name="Lucro"
+          />
+          <Area
+            type="monotone"
+            dataKey="costs"
+            stroke="hsl(0, 84%, 60%)"
+            strokeWidth={2}
+            fillOpacity={1}
+            fill="url(#colorCosts)"
+            name="Custos"
           />
         </AreaChart>
       </ResponsiveContainer>
