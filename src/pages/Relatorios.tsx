@@ -4,7 +4,7 @@ import { useSalesByCategory, useTopProducts, useSalesByPaymentMethod } from '@/h
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { formatCurrency } from '@/lib/format';
 import { categoryLabels, ProductCategory } from '@/types/database';
-import { BarChart3, PieChart, TrendingUp, Download, CreditCard } from 'lucide-react';
+import { BarChart3, PieChart, TrendingUp, Download, CreditCard, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   PieChart as RechartsPieChart,
@@ -20,6 +20,10 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { generateSalesReportPDF, SalesReportData } from '@/utils/generatePDF';
+import { toast } from 'sonner';
 
 const COLORS = [
   'hsl(160, 84%, 39%)',
@@ -40,6 +44,34 @@ export default function Relatorios() {
   const { data: categoryData, isLoading: categoryLoading } = useSalesByCategory();
   const { data: topProducts, isLoading: topLoading } = useTopProducts(10);
   const { data: paymentData, isLoading: paymentLoading } = useSalesByPaymentMethod();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    try {
+      setIsGeneratingPDF(true);
+      toast.info('Gerando relatório PDF...');
+
+      const { data, error } = await supabase
+        .from('sales')
+        .select('*, product:products(*)')
+        .order('sale_date', { ascending: false });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        toast.warning('Nenhuma venda encontrada para gerar o relatório.');
+        return;
+      }
+
+      generateSalesReportPDF(data as unknown as SalesReportData[]);
+      toast.success('Relatório gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar o relatório PDF.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   const pieData = categoryData
     ? Object.entries(categoryData).map(([category, data]) => ({
@@ -71,9 +103,18 @@ export default function Relatorios() {
               Análises e métricas do seu negócio
             </p>
           </div>
-          <Button variant="outline" className="gap-2" disabled>
-            <Download className="h-4 w-4" />
-            Exportar PDF
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={handleDownloadPDF}
+            disabled={isGeneratingPDF}
+          >
+            {isGeneratingPDF ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            {isGeneratingPDF ? 'Gerando...' : 'Exportar PDF'}
           </Button>
         </div>
 

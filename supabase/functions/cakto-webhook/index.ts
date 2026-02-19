@@ -85,6 +85,8 @@ serve(async (req) => {
                     starts_at: now.toISOString(),
                     expires_at: expiresAt.toISOString(),
                     updated_at: now.toISOString()
+                }, {
+                    onConflict: 'user_id'
                 })
 
             if (upsertError) {

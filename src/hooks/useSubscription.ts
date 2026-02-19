@@ -33,14 +33,11 @@ export function useSubscription() {
                 const { data, error } = await supabase
                     .from('user_subscriptions' as any)
                     .select('*')
-                    .eq('user_id', user.id)
-                    .order('expires_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
+                    .eq('user_id', user.id);
 
                 if (error) throw error;
 
-                if (!data) {
+                if (!data || data.length === 0) {
                     setSubscription({
                         status: 'none',
                         daysRemaining: null,
@@ -51,9 +48,20 @@ export function useSubscription() {
                     return;
                 }
 
-                const subscriptionData = data as any;
-                const expiresAt = new Date(subscriptionData.expires_at);
+                // Find the first active subscription that hasn't expired
                 const now = new Date();
+                const activeSubscription = data.find((sub: any) => {
+                    const expiresAt = new Date(sub.expires_at);
+                    return sub.status === 'active' && expiresAt > now;
+                });
+
+                // If no active subscription found, use the most recent one (even if expired) for display purposes
+                const mostRecentSubscription = activeSubscription || data.sort((a: any, b: any) =>
+                    new Date(b.expires_at).getTime() - new Date(a.expires_at).getTime()
+                )[0];
+
+                const subscriptionData = mostRecentSubscription;
+                const expiresAt = new Date(subscriptionData.expires_at);
 
                 // Calculate difference in milliseconds
                 const diffTime = expiresAt.getTime() - now.getTime();
