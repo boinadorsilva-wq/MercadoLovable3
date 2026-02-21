@@ -37,7 +37,7 @@ export function Sidebar() {
           </div>
           <div>
             <h1 className="font-display text-lg font-bold text-sidebar-foreground">
-              Mercado PRO
+              Gestãonegocio
             </h1>
             <p className="text-xs text-sidebar-foreground/60">Gestão Inteligente</p>
           </div>

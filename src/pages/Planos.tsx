@@ -96,7 +96,7 @@ export default function Planos() {
                     <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
                         <Star className="h-6 w-6 text-primary fill-primary" />
                     </div>
-                    <h3 className="text-2xl font-bold mb-2">Por que escolher o Mercado PRO?</h3>
+                    <h3 className="text-2xl font-bold mb-2">Por que escolher o Gestãonegocio?</h3>
                     <ul className="text-left max-w-md mx-auto mt-6 space-y-3">
                         <li className="flex items-center gap-2">
                             <Check className="h-5 w-5 text-green-500" />

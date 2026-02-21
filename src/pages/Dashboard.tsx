@@ -187,7 +187,7 @@ export default function Dashboard() {
                 Pagamento Confirmado!
               </DialogTitle>
               <DialogDescription className="text-center">
-                Parabéns! Você acaba de receber acesso liberado ao Mercado PRO.
+                Parabéns! Você acaba de receber acesso liberado ao Gestãonegocio.
                 Aproveite todos os recursos para gerenciar seu negócio.
               </DialogDescription>
             </DialogHeader>
