@@ -12,7 +12,7 @@ export interface SalesReportData extends Sale {
 export const generateSalesReportPDF = (sales: SalesReportData[]) => {
     const doc = new jsPDF();
 
-    const title = 'Relatório de Vendas - Gestãonegocio';
+    const title = 'Relatório de Vendas - Mercado PRO';
     const subTitle = `Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })}`;
 
     doc.setFontSize(20);

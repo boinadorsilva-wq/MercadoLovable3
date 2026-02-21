@@ -26,7 +26,7 @@ const Login = () => {
         if (error) throw error;
         toast({
           title: "Login realizado com sucesso!",
-          description: "Bem-vindo de volta ao Gestãonegocio.",
+          description: "Bem-vindo de volta ao Mercado PRO.",
           className: "bg-green-600 text-white border-none",
         });
         navigate("/");
@@ -72,7 +72,7 @@ const Login = () => {
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
               <ShoppingCart className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-display font-bold text-foreground">Gestãonegocio</span>
+            <span className="text-xl font-display font-bold text-foreground">Mercado PRO</span>
           </div>
 
           {/* Hero */}
@@ -83,7 +83,7 @@ const Login = () => {
             com IA em segundos.
           </h1>
           <p className="text-lg text-muted-foreground max-w-md mb-10">
-            O Gestãonegocio automatiza seu planejamento, otimiza seu estoque e gera relatórios inteligentes para você vender mais.
+            O Mercado PRO automatiza seu planejamento, otimiza seu estoque e gera relatórios inteligentes para você vender mais.
           </p>
 
           {/* CTA Buttons */}
@@ -132,7 +132,7 @@ const Login = () => {
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
                 <ShoppingCart className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="text-lg font-display font-bold text-foreground">Gestãonegocio</span>
+              <span className="text-lg font-display font-bold text-foreground">Mercado PRO</span>
             </div>
 
             <h2 className="text-2xl font-display font-bold text-foreground mb-1">
