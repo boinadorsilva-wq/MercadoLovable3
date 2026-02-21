@@ -47,8 +47,6 @@ serve(async (req) => {
 
         if (isPaid) {
             // Encontrar usuário pelo email usando a API de Admin do Supabase
-            // Nota: listUsers retorna paginado, padrão 50. Se tiver muitos usuários, precisaria iterar.
-            // Assumindo < 1000 usuários para este passo inicial ou que o usuário recente está na primeira página.
             const { data: { users }, error: userError } = await supabase.auth.admin.listUsers({
                 per_page: 1000
             });
@@ -61,8 +59,6 @@ serve(async (req) => {
 
             if (!user) {
                 console.error('User not found for email:', email);
-                // Retornamos 200 para a Cakto parar de tentar reenviar, pois o erro é nosso (usuário não existe)
-                // Mas logamos o erro.
                 return new Response(JSON.stringify({ error: 'User not found in system' }), {
                     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                     status: 200,
@@ -71,16 +67,51 @@ serve(async (req) => {
 
             console.log(`User found: ${user.id}`);
 
+            // Detectar tipo de plano pelo nome do produto
+            const productName = (
+                payload.product_name ||
+                payload.description ||
+                payload.plan_name ||
+                payload.data?.product_name ||
+                payload.data?.description ||
+                ''
+            ).toLowerCase();
+
+            let planType = 'monthly';
+            let daysToAdd = 30;
+
+            if (
+                productName.includes('trimestral') ||
+                productName.includes('trimensal') ||
+                productName.includes('quarterly') ||
+                productName.includes('3 meses') ||
+                productName.includes('três meses')
+            ) {
+                planType = 'quarterly';
+                daysToAdd = 90;
+            } else if (
+                productName.includes('anual') ||
+                productName.includes('yearly') ||
+                productName.includes('annual') ||
+                productName.includes('12 meses') ||
+                productName.includes('um ano')
+            ) {
+                planType = 'yearly';
+                daysToAdd = 365;
+            }
+
+            console.log(`Product: "${productName}" -> Plan: ${planType} (${daysToAdd} dias)`);
+
             // Calcular datas
             const now = new Date();
             const expiresAt = new Date();
-            expiresAt.setDate(now.getDate() + 30); // 30 dias de acesso
+            expiresAt.setDate(now.getDate() + daysToAdd);
 
             const { error: upsertError } = await supabase
                 .from('user_subscriptions')
                 .upsert({
                     user_id: user.id,
-                    plan_type: 'monthly',
+                    plan_type: planType,
                     status: 'active',
                     starts_at: now.toISOString(),
                     expires_at: expiresAt.toISOString(),
@@ -94,7 +125,7 @@ serve(async (req) => {
                 throw upsertError;
             }
 
-            console.log(`Subscription updated for user ${user.id} -> Active until ${expiresAt.toISOString()}`);
+            console.log(`Subscription updated for user ${user.id} -> Plan: ${planType} | Active until ${expiresAt.toISOString()}`);
         } else {
             console.log(`Payment status '${status}' is not considered paid. Ignoring.`);
         }
